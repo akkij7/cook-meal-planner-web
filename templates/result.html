@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Meal Plan</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: auto; background-color: #fff; padding: 20px 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; margin-bottom: 25px; }
+        textarea#mealMessage {
+            width: 95%;
+            height: 250px; /* Adjust height as needed */
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+            font-size: 1em;
+            margin-top: 10px;
+            white-space: pre; /* Preserve whitespace and newlines */
+            background-color: #fdfdfd;
+        }
+        .button-container { text-align: center; margin-top: 20px; }
+        .copy-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        .copy-button:hover { background-color: #0056b3; }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            text-decoration: none; /* For anchor tag style */
+        }
+        .back-button:hover { background-color: #5a6268; }
+        #copy_status { margin-top: 10px; color: green; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Aaj Ka Menu</h1>
+        
+        <textarea id="mealMessage" readonly>{{ meal_message }}</textarea>
+        
+        <div class="button-container">
+            <button onclick="copyMessage()" class="copy-button">Copy Message</button>
+            <a href="/" class="back-button">Plan Another Meal</a>
+        </div>
+        <p id="copy_status"></p>
+    </div>
+
+<script>
+function copyMessage() {
+    /* Get the text field */
+    var copyText = document.getElementById("mealMessage");
+
+    /* Select the text field */
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+    /* Copy the text inside the text field */
+    try {
+        var successful = document.execCommand('copy');
+        var msg = successful ? 'Message copied to clipboard!' : 'Copying failed';
+        document.getElementById('copy_status').innerText = msg;
+        // Clear message after a few seconds
+        setTimeout(function(){
+             document.getElementById('copy_status').innerText = '';
+        }, 3000); 
+    } catch (err) {
+        document.getElementById('copy_status').innerText = 'Oops, unable to copy!';
+        console.error('Fallback: Oops, unable to copy', err);
+    }
+
+    /* Optional: Deselect the text field */
+    window.getSelection().removeAllRanges();
+}
+</script>
+
+</body>
+</html> 

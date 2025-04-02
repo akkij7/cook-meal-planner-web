@@ -1,0 +1,5 @@
+venv/
+__pycache__/
+.env
+cook_meal_planner.py
+cook_meal_planner - Copy.py 
