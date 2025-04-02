@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plan {{ meal_mode }}</title>
+    <title>Plan Your Meal</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f4f4; }
         .container { max-width: 800px; margin: auto; background-color: #fff; padding: 20px 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h1 { color: #333; text-align: center; margin-bottom: 25px; }
         h2 { color: #555; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .mandatory { font-style: italic; color: #777; margin-bottom: 20px; }
         .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
         label { display: block; background-color: #f9f9f9; padding: 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
         label:hover { background-color: #e9e9e9; }
@@ -29,37 +28,115 @@
         .submit-button:hover { background-color: #4cae4c; }
         a.back-link { display: inline-block; margin-top: 20px; color: #007bff; text-decoration: none; }
         a.back-link:hover { text-decoration: underline; }
+        .portions-input {
+            width: 60px;
+            padding: 5px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .new-meal-form {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .new-meal-input {
+            width: 60%;
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .add-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .add-button:hover { background-color: #0056b3; }
+        .meal-type-selector {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .meal-type-selector select {
+            padding: 8px;
+            font-size: 1.1em;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .quantity-input {
+            width: 60px;
+            padding: 5px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: none;
+        }
+        .quantity-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-left: 5px;
+            display: none;
+        }
+        .section-divider {
+            border-top: 1px solid #eee;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
         <a href="/" class="back-link">&larr; Go Back</a>
         <h1>{{ title }}</h1>
 
         <form action="/generate" method="post">
-            
-            {% if mandatory %}
-                <h2>Mandatory Items:</h2>
-                <p class="mandatory">{{ mandatory | join(', ') }}</p>
-            {% endif %}
+            <div class="meal-type-selector">
+                <select name="meal_type" id="mealType">
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                </select>
+            </div>
+
+            <h2>Protein & Chach:</h2>
+            <div class="options-grid">
+                {% for item in protein_and_chach %}
+                <label>
+                    <input type="checkbox" name="protein_chach" value="{{ item }}" class="protein-chach-checkbox">
+                    {{ item }}
+                    <input type="number" name="protein_chach_qty_{{ item }}" value="1" min="0.5" step="0.5" class="quantity-input">
+                    <span class="quantity-label">glass</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div class="section-divider"></div>
 
             <h2>Choose Main Dish(es):</h2>
             <div class="options-grid">
                 {% for option in options %}
                 <label>
-                    <input type="checkbox" name="main_dish" value="{{ option }}">
+                    <input type="checkbox" name="main_dish" value="{{ option }}" class="main-dish-checkbox">
                     {{ option }}
+                    <input type="number" name="portion_{{ option }}" value="1" min="0.5" step="0.5" class="portions-input" style="display: none;">
                 </label>
                 {% endfor %}
             </div>
+
+            <div class="section-divider"></div>
 
             <h2>Add Staples:</h2>
             <div class="options-grid">
                 {% for staple in staples %}
                 <label>
-                    <input type="checkbox" name="staple" value="{{ staple }}">
+                    <input type="checkbox" name="staple" value="{{ staple }}" class="staple-checkbox">
                     {{ staple }}
+                    {% if staple != "Salad" %}
+                    <input type="number" name="staple_qty_{{ staple }}" value="1" min="0.5" step="0.5" class="quantity-input">
+                    <span class="quantity-label">{% if staple == "Chawal" %}log ke liye{% else %}{% endif %}</span>
+                    {% endif %}
                 </label>
                 {% endfor %}
             </div>
@@ -70,9 +147,47 @@
             <div class="button-container">
                 <button type="submit" class="submit-button">Generate Meal Plan Message</button>
             </div>
-
         </form>
+
+        <div class="new-meal-form">
+            <h2>Add New Dish</h2>
+            <form action="{{ url_for('add_suggestion') }}" method="post">
+                <input type="text" name="new_meal" class="new-meal-input" placeholder="Enter new dish name" required>
+                <button type="submit" class="add-button">Add Dish</button>
+            </form>
+        </div>
     </div>
 
+    <script>
+        // Show/hide portions input when main dish is selected
+        document.querySelectorAll('.main-dish-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const portionsInput = this.parentElement.querySelector('.portions-input');
+                portionsInput.style.display = this.checked ? 'inline-block' : 'none';
+            });
+        });
+
+        // Show/hide quantity input when staple is selected
+        document.querySelectorAll('.staple-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const quantityInput = this.parentElement.querySelector('.quantity-input');
+                const quantityLabel = this.parentElement.querySelector('.quantity-label');
+                if (quantityInput && quantityLabel) {
+                    quantityInput.style.display = this.checked ? 'inline-block' : 'none';
+                    quantityLabel.style.display = this.checked ? 'inline' : 'none';
+                }
+            });
+        });
+
+        // Show/hide quantity input when protein/chach is selected
+        document.querySelectorAll('.protein-chach-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const quantityInput = this.parentElement.querySelector('.quantity-input');
+                const quantityLabel = this.parentElement.querySelector('.quantity-label');
+                quantityInput.style.display = this.checked ? 'inline-block' : 'none';
+                quantityLabel.style.display = this.checked ? 'inline' : 'none';
+            });
+        });
+    </script>
 </body>
 </html> 

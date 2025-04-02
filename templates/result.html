@@ -10,15 +10,16 @@
         h1 { color: #333; text-align: center; margin-bottom: 25px; }
         textarea#mealMessage {
             width: 95%;
-            height: 250px; /* Adjust height as needed */
+            height: 250px;
             padding: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-family: Consolas, monospace;
             font-size: 1em;
             margin-top: 10px;
-            white-space: pre; /* Preserve whitespace and newlines */
+            white-space: pre;
             background-color: #fdfdfd;
+            line-height: 1.5;
         }
         .button-container { text-align: center; margin-top: 20px; }
         .copy-button {
@@ -42,14 +43,18 @@
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.3s ease;
-            text-decoration: none; /* For anchor tag style */
+            text-decoration: none;
         }
         .back-button:hover { background-color: #5a6268; }
         #copy_status { margin-top: 10px; color: green; font-weight: bold; text-align: center; }
+        .portions-info {
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h1>Aaj Ka Menu</h1>
         
@@ -62,33 +67,26 @@
         <p id="copy_status"></p>
     </div>
 
-<script>
-function copyMessage() {
-    /* Get the text field */
-    var copyText = document.getElementById("mealMessage");
-
-    /* Select the text field */
-    copyText.select();
-    copyText.setSelectionRange(0, 99999); /* For mobile devices */
-
-    /* Copy the text inside the text field */
-    try {
-        var successful = document.execCommand('copy');
-        var msg = successful ? 'Message copied to clipboard!' : 'Copying failed';
-        document.getElementById('copy_status').innerText = msg;
-        // Clear message after a few seconds
-        setTimeout(function(){
-             document.getElementById('copy_status').innerText = '';
-        }, 3000); 
-    } catch (err) {
-        document.getElementById('copy_status').innerText = 'Oops, unable to copy!';
-        console.error('Fallback: Oops, unable to copy', err);
-    }
-
-    /* Optional: Deselect the text field */
-    window.getSelection().removeAllRanges();
-}
-</script>
-
+    <script>
+        function copyMessage() {
+            var copyText = document.getElementById("mealMessage");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            
+            try {
+                var successful = document.execCommand('copy');
+                var msg = successful ? 'Message copied to clipboard!' : 'Copying failed';
+                document.getElementById('copy_status').innerText = msg;
+                setTimeout(function(){
+                    document.getElementById('copy_status').innerText = '';
+                }, 3000);
+            } catch (err) {
+                document.getElementById('copy_status').innerText = 'Oops, unable to copy!';
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            
+            window.getSelection().removeAllRanges();
+        }
+    </script>
 </body>
 </html> 

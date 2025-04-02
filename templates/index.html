@@ -8,7 +8,7 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f4f4f4; text-align: center; }
         h1 { color: #333; }
         .choice-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: inline-block; }
-        .choice-button {
+        .start-button {
             background-color: #5cb85c;
             color: white;
             border: none;
@@ -19,18 +19,15 @@
             font-size: 1.2em;
             transition: background-color 0.3s ease;
         }
-        .choice-button:hover { background-color: #4cae4c; }
+        .start-button:hover { background-color: #4cae4c; }
     </style>
 </head>
 <body>
-
     <div class="choice-container">
-        <h1>Aap kya plan karna chahte hain?</h1>
+        <h1>Aaj Kya Banega?</h1>
         <form action="/plan" method="post">
-            <button type="submit" name="meal_mode" value="Lunch" class="choice-button">Lunch (Subah)</button>
-            <button type="submit" name="meal_mode" value="Dinner" class="choice-button">Dinner (Shaam)</button>
+            <button type="submit" class="start-button">Plan Your Meal</button>
         </form>
     </div>
-
 </body>
 </html> 
