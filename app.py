@@ -13,19 +13,34 @@ app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 PROTEIN_AND_CHACH = ["Protein Shake", "Chach"]
 
 # Base meal options that come with the app
-BASE_MEALS = [
-    "Poha", "Upma", "Aloo Paratha", "Methi Paratha", "Moong Dal Cheela",
-    "Dalia", "Vegetable Sandwich", "Paneer Butter Masala", "Mix Veg", 
-    "Chole Bhature", "Rajasthani Gatte ki Sabji", "Ker Sangri", "Sev Tamatar", 
-    "Malai Kofta", "Palak Paneer", "Kadhi Pakora", "Veg Pulao", "Mango Shake", 
-    "Papaya", "Orange", "Kharbooza/Muskmelon", "Watermelon", "Daal", "Baati",
+BASE_MEALS = sorted([
+    "Poha", "Upma", 
+    "Dalia", 
+    "Paneer Butter Masala", "Mix Veg", 
+    #"Rajasthani Gatte ki Sabji", 
+    "Ker Sangri", "Sev Tamatar", 
+    "Malai Kofta", "Palak Paneer", "Kadhi Pakora", "Veg Pulao", #"Mango Shake", 
+    "Daal", 
     "Kadi", "Bharwa Shima Mirch", "Loki", "Daal Dhokli", "Gatte", "Stuff Tomato",
-    "Fried Rice", "Aalo Pyaaz", "Pao Bhaaji", "Veg and Aalo Sandwich", "Besan Chilaa",
+    "Fried Rice", "Aalo Pyaaz", "Pao Bhaaji", 
     "Aaloo Tamatar", "Idli Shambar", "Malaai Pyaaz", "Sahi Paneer", "Loki ke Kofte",
-    "Aaloo Bhuna", "Chole"
-]
+    "Aaloo Bhuna", "Chole",
+    "Chawal", 
+    "Panchmel Dal", "Papad ki Sabji", "Govind Gatta", #"Aamras", 
+    #"Moong Dal Halwa", "Malpua", "Ghevar"
+])
 
-STAPLES = ["Roti", "Chawal", "Salad"]
+STAPLES = sorted([
+    "Roti", 
+    "Salad", 
+    "Aloo Paratha", "Methi Paratha", "Moong Dal Cheela", "Besan Chilaa", 
+    "Aalo Sandwich",
+    "Vegetable Sandwich", "Papaya", "Orange", "Kharbooza/Muskmelon", 
+    "Watermelon", "Baati",
+    "Churma", "Bajra Roti", "Makki ki Roti",
+    # Newly added/moved
+    "Bhatoora", "Mango Shake"
+])
 
 # File to store user suggestions
 SUGGESTIONS_FILE = "user_suggestions.json"
@@ -34,7 +49,10 @@ def load_user_suggestions():
     """Load user suggestions from JSON file."""
     if os.path.exists(SUGGESTIONS_FILE):
         with open(SUGGESTIONS_FILE, 'r') as f:
-            return json.load(f)
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                 return {"meals": [], "portions": {}} # Return empty if file is corrupted
     return {"meals": [], "portions": {}}
 
 def save_user_suggestions(suggestions):
@@ -45,32 +63,42 @@ def save_user_suggestions(suggestions):
 def get_all_meal_options():
     """Get all meal options including user suggestions."""
     suggestions = load_user_suggestions()
-    all_meals = sorted(list(set(BASE_MEALS + suggestions["meals"])))
+    invalid_suggestions = set(STAPLES + PROTEIN_AND_CHACH)
+    filtered_suggestions = [m for m in suggestions.get("meals", []) if m not in invalid_suggestions]
+    all_meals = sorted(list(set(BASE_MEALS + filtered_suggestions)))
     return all_meals
 
 def format_quantity(quantity, item):
     """Format quantity based on item type, removing .0 for integers."""
     try:
         qty = float(quantity)
-        # Format whole numbers as integers
         if qty == int(qty):
             qty_str = str(int(qty))
         else:
-            qty_str = str(qty)
+            qty_str = "1/2" if qty == 0.5 else str(qty)
 
-        if item == "Protein Shake" or item == "Chach":
+        # Define formats for different categories
+        total_format_items = ["Roti", "Aloo Paratha", "Methi Paratha", "Moong Dal Cheela", 
+                              "Besan Chilaa", "Aalo Sandwich", "Vegetable Sandwich", 
+                              "Baati", "Bajra Roti", "Makki ki Roti", "Bhatoora"]
+        plate_portion_items = ["Papaya", "Orange", "Kharbooza/Muskmelon", "Watermelon"]
+        glass_items = ["Protein Shake", "Chach", "Mango Shake"]
+
+        if item in glass_items:
             return f"{qty_str} glass"
-        elif item == "Chawal":
+        elif item == "Chawal" or item in get_all_meal_options(): # Main dishes + Chawal
             return f"{qty_str} log ke liye"
-        elif item == "Roti":
+        elif item in total_format_items:
             return f"({qty_str} Total)"
+        elif item == "Churma":
+             return f"{qty_str} serving"
+        elif item in plate_portion_items:
+            return f"{qty_str} plate/portion"
         elif item == "Salad":
             return "" # No quantity for salad
-        elif item in get_all_meal_options(): # Assume it's a main dish
-             return f"{qty_str} log ke liye"
-        else: # Default/Fallback for staples or others not explicitly handled
+        else: # Default/Fallback for any other staples
             return f"{qty_str} plate/portion"
-    except ValueError:
+    except (ValueError, TypeError):
         return quantity # Return original if conversion fails
 
 # --- Flask Routes ---
@@ -87,7 +115,7 @@ def plan_meal():
     return render_template('plan.html', 
                          title="Aaj Kya Banega?",
                          options=options, 
-                         staples=STAPLES,
+                         staples=STAPLES, 
                          protein_and_chach=PROTEIN_AND_CHACH)
 
 @app.route('/generate', methods=['POST'])
@@ -99,70 +127,60 @@ def generate_message():
     custom_request = request.form.get('custom_request', '').strip()
     meal_type = request.form.get('meal_type', 'lunch')
     
-    # Get quantities/portions
     main_dish_portions = {}
     staple_quantities = {}
     protein_chach_quantities = {}
 
     suggestions = load_user_suggestions()
     for dish in selected_mains:
-        portion = request.form.get(f'portion_{dish}', '1') # Get portion for this specific dish
+        portion = request.form.get(f'portion_{dish}', '1')
         main_dish_portions[dish] = portion
-        suggestions["portions"][dish] = portion # Save portion per dish
+        if dish in BASE_MEALS or dish in suggestions.get("meals", []):
+             suggestions.setdefault("portions", {})[dish] = portion 
     save_user_suggestions(suggestions)
     
     for staple in STAPLES:
-        # Only get quantity if staple is selected
         if staple in selected_staples:
             qty = request.form.get(f'staple_qty_{staple}', '1')
             staple_quantities[staple] = qty
             
     for item in PROTEIN_AND_CHACH:
-        # Only get quantity if item is selected
         if item in selected_protein_chach:
             qty = request.form.get(f'protein_chach_qty_{item}', '1')
             protein_chach_quantities[item] = qty
     
     # --- Combine and Generate Message ---
-    final_meal_list = []
-    
-    # Add protein and chach if selected
-    final_meal_list.extend(selected_protein_chach)
-    
-    # Add main dishes and staples
-    final_meal_list.extend(sorted(selected_mains))
-    final_meal_list.extend(sorted(selected_staples))
+    all_selected_items = selected_protein_chach + selected_mains + selected_staples
+    unique_ordered_items = list(dict.fromkeys(all_selected_items)) 
 
     message_lines = []
     message_lines.append("Namaste Bhaiya!")
     message_lines.append(f"\nKripya {meal_type.capitalize()} ke liye yeh tayyar kar dijiye:")
 
-    if not final_meal_list: 
+    if not unique_ordered_items: 
         message_lines.append("- Kuch bhi nahi!") 
     else:
-        processed_items = set() # To avoid duplicates if an item is in multiple lists
-        for item in final_meal_list:
-            if item in processed_items:
-                continue
-                
-            if item in selected_mains:
-                qty = format_quantity(main_dish_portions.get(item, '1'), item)
-                message_lines.append(f"- {item} ({qty})")
+        for item in unique_ordered_items:
+            if item in selected_protein_chach:
+                qty_str = format_quantity(protein_chach_quantities.get(item, '1'), item)
+                message_lines.append(f"- {item} ({qty_str})")
+            elif item in selected_mains:
+                qty_str = format_quantity(main_dish_portions.get(item, '1'), item)
+                message_lines.append(f"- {item} ({qty_str})")
             elif item in selected_staples:
-                # Get quantity only if staple was selected and has quantity
-                if item in staple_quantities:
-                    qty = format_quantity(staple_quantities[item], item)
-                    if qty: # Format Roti correctly, handle Salad
-                       message_lines.append(f"- {item} {qty if item == 'Roti' else '('+qty+')'}")
+                if item == "Salad":
+                     message_lines.append(f"- {item}")
+                elif item in staple_quantities:
+                    qty_str = format_quantity(staple_quantities[item], item)
+                    # Use specific format based on item type
+                    if item in ["Roti", "Aloo Paratha", "Methi Paratha", "Moong Dal Cheela", 
+                                "Besan Chilaa", "Aalo Sandwich", "Vegetable Sandwich", 
+                                "Baati", "Bajra Roti", "Makki ki Roti", "Bhatoora"]:
+                         message_lines.append(f"- {item} {qty_str}")
+                    elif item in ["Mango Shake"]:
+                         message_lines.append(f"- {item} ({qty_str})") # Use glass format
                     else:
-                       message_lines.append(f"- {item}")
-                else: # Handle Salad (no quantity)
-                    message_lines.append(f"- {item}")
-            elif item in selected_protein_chach:
-                qty = format_quantity(protein_chach_quantities.get(item, '1'), item)
-                message_lines.append(f"- {item} ({qty})")
-            
-            processed_items.add(item)
+                         message_lines.append(f"- {item} ({qty_str})") # Default staple format (plate/portion, serving)
 
     if custom_request:
         message_lines.append("\nEk aur baat:") 
@@ -179,8 +197,9 @@ def add_suggestion():
     new_meal = request.form.get('new_meal', '').strip()
     if new_meal:
         suggestions = load_user_suggestions()
-        if new_meal not in suggestions["meals"]:
-            suggestions["meals"].append(new_meal)
+        invalid_new_meal = set(BASE_MEALS + STAPLES + PROTEIN_AND_CHACH)
+        if new_meal not in invalid_new_meal and new_meal not in suggestions.get("meals", []):
+            suggestions.setdefault("meals", []).append(new_meal)
             save_user_suggestions(suggestions)
     return redirect(url_for('plan_meal'))
 
