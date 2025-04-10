@@ -4,67 +4,418 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated Meal Plan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { max-width: 600px; margin: auto; background-color: #fff; padding: 20px 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; margin-bottom: 25px; }
-        textarea#mealMessage {
-            width: 95%;
-            height: 250px;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: Consolas, monospace;
-            font-size: 1em;
-            margin-top: 10px;
-            white-space: pre;
-            background-color: #fdfdfd;
-            line-height: 1.5;
+        :root {
+            --primary-color: #FF5722;
+            --primary-light: #FF9800;
+            --accent-color: #2196F3;
+            --light-bg: #f8f9fa;
+            --dark-text: #333;
+            --medium-text: #555;
+            --light-text: #777;
+            --white: #fff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.08);
+            --shadow-hover: 0 8px 25px rgba(0,0,0,0.12);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
         }
-        .button-container { text-align: center; margin-top: 20px; }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container { 
+            max-width: 800px; 
+            width: 100%;
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+        }
+        
+        /* SECTION 1: HEADER */
+        .header-section {
+            padding: 2.5rem 2.5rem 1.5rem 2.5rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header-section::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--dark-text);
+            position: relative;
+            padding-bottom: 1rem;
+            display: inline-block;
+        }
+        
+        h1:after {
+            content: "";
+            position: absolute;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .intro-text {
+            color: var(--medium-text);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* SECTION 2: MESSAGE CONTENT */
+        .message-section {
+            padding: 2rem 2.5rem;
+            position: relative;
+            background-color: rgba(248, 249, 250, 0.4);
+        }
+        
+        .message-section::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+        }
+        
+        .message-container {
+            position: relative;
+            margin: 0;
+            box-shadow: var(--shadow);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(to right, rgba(255, 87, 34, 0.05), rgba(255, 152, 0, 0.05));
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .message-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            box-shadow: 0 2px 10px rgba(255, 87, 34, 0.3);
+        }
+        
+        .message-title {
+            font-weight: 500;
+            color: var(--medium-text);
+            font-size: 1.1rem;
+        }
+        
+        .message-content {
+            padding: 0;
+            background-color: var(--light-bg);
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            position: relative;
+        }
+        
+        #mealMessage {
+            width: 100%;
+            min-height: 280px;
+            padding: 1.5rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            line-height: 1.8;
+            border: none;
+            resize: none;
+            background-color: transparent;
+            color: var(--dark-text);
+            white-space: pre-wrap;
+        }
+        
+        #mealMessage:focus {
+            outline: none;
+        }
+        
+        #mealMessage::selection {
+            background-color: rgba(255, 87, 34, 0.2);
+        }
+        
+        /* Styles for formatted message sections */
+        .section-greeting {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1em;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-items {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-items-title {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-item {
+            padding: 0.3rem 0;
+        }
+        
+        .section-closing {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+        }
+        
+        /* SECTION 3: ACTION BUTTONS */
+        .action-section {
+            padding: 2.5rem 2.5rem 3rem 2.5rem;
+            text-align: center;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
         .copy-button {
-            background-color: #007bff;
+            background: linear-gradient(45deg, var(--accent-color), #03A9F4);
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin-right: 10px;
-            border-radius: 5px;
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
             cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            position: relative;
+            overflow: hidden;
         }
-        .copy-button:hover { background-color: #0056b3; }
+        
+        .copy-button:before, .back-button:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .copy-button:hover:before, .back-button:hover:before {
+            left: 100%;
+        }
+        
+        .copy-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(33, 150, 243, 0.4);
+        }
+        
+        .copy-button:active, .back-button:active {
+            transform: translateY(1px);
+        }
+        
         .back-button {
-            background-color: #6c757d;
+            background: linear-gradient(45deg, #9E9E9E, #757575);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
             cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(158, 158, 158, 0.3);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            position: relative;
+            overflow: hidden;
         }
-        .back-button:hover { background-color: #5a6268; }
-        #copy_status { margin-top: 10px; color: green; font-weight: bold; text-align: center; }
-        .portions-info {
-            color: #666;
-            font-style: italic;
-            margin-top: 5px;
+        
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(158, 158, 158, 0.4);
+        }
+        
+        #copy_status {
+            text-align: center;
+            padding: 0.8rem 1rem;
+            color: #4CAF50;
+            font-weight: 500;
+            border-radius: 50px;
+            display: inline-block;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        
+        #copy_status.show {
+            opacity: 1;
+        }
+        
+        .footer {
+            margin-top: 2.5rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .footer a:hover {
+            color: var(--primary-light);
+        }
+        
+        .icon {
+            font-size: 1.3rem;
+        }
+        
+        /* Animations */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+        
+        .animate-status {
+            animation: fadeInOut 3s forwards;
+        }
+        
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+            }
+            
+            .header-section, .message-section, .action-section {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .button-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .copy-button, .back-button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            #mealMessage {
+                font-size: 0.95rem;
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Aaj Ka Menu</h1>
-        
-        <textarea id="mealMessage" readonly>{{ meal_message }}</textarea>
-        
-        <div class="button-container">
-            <button onclick="copyMessage()" class="copy-button">Copy Message</button>
-            <a href="/" class="back-button">Plan Another Meal</a>
+    <div class="container animate__animated animate__fadeIn">
+        <!-- SECTION 1: HEADER -->
+        <div class="header-section animate__animated animate__fadeInDown">
+            <h1>আজকের মেনু (आज का मेनू)</h1>
+            <p class="intro-text">Your meal plan has been generated successfully. Copy it to send to your cook!</p>
         </div>
-        <p id="copy_status"></p>
+        
+        <!-- SECTION 2: MESSAGE CONTENT -->
+        <div class="message-section animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+            <div class="message-container">
+                <div class="message-header">
+                    <div class="message-icon">📝</div>
+                    <div class="message-title">আপনার তৈরি মেসেজ (आपका तैयार किया गया संदेश)</div>
+                </div>
+                <div class="message-content">
+                    <textarea id="mealMessage" readonly>{{ meal_message }}</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 3: ACTION BUTTONS -->
+        <div class="action-section animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+            <div class="button-container">
+                <button onclick="copyMessage()" class="copy-button">
+                    <span class="icon">📋</span>
+                    মেসেজ কপি করুন (संदेश कॉपी करें)
+                </button>
+                <a href="/" class="back-button">
+                    <span class="icon">🔄</span>
+                    আরেকটি খাবার প্ল্যান করুন (एक और भोजन प्लान करें)
+                </a>
+            </div>
+            <div id="copy_status" class="animate__animated animate__fadeIn" style="animation-delay: 0.3s"></div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        Made with ❤️ for Vishnu Bhaiya by <a href="mailto:akkijain989@gmail.com">Akshay</a>
     </div>
 
     <script>
@@ -75,18 +426,28 @@
             
             try {
                 var successful = document.execCommand('copy');
-                var msg = successful ? 'Message copied to clipboard!' : 'Copying failed';
-                document.getElementById('copy_status').innerText = msg;
+                var status = document.getElementById('copy_status');
+                var msg = successful ? 'মেসেজ ক্লিপবোর্ডে কপি করা হয়েছে! (संदेश क्लिपबोर्ड पर कॉपी किया गया!)' : 'কপি ব্যর্থ হয়েছে (कॉपी विफल)';
+                status.innerText = msg;
+                status.classList.add('show', 'animate-status');
+                
                 setTimeout(function(){
-                    document.getElementById('copy_status').innerText = '';
+                    status.classList.remove('show', 'animate-status');
                 }, 3000);
             } catch (err) {
-                document.getElementById('copy_status').innerText = 'Oops, unable to copy!';
+                document.getElementById('copy_status').innerText = 'কপি করতে অক্ষম! (कॉपी करने में असमर्थ!)';
                 console.error('Fallback: Oops, unable to copy', err);
             }
             
             window.getSelection().removeAllRanges();
         }
+        
+        // Auto-adjust textarea height to content on load
+        window.addEventListener('load', function() {
+            var mealMessage = document.getElementById('mealMessage');
+            mealMessage.style.height = 'auto';
+            mealMessage.style.height = (mealMessage.scrollHeight + 10) + 'px';
+        });
     </script>
 </body>
 </html> 
